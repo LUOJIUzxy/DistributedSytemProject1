@@ -37,7 +37,7 @@ public class IdxSrv
     	String dir = System.getProperty("user.dir");
     	String secret = "server123";
     	int timeout = 1000;
-    	InetAddress address = InetAddress.getByName("localhost");
+    	InetAddress address = InetAddress.getByName("172.24.74.41");
     	Option helpOption = new Option("h","help",false,"help");
     	helpOption.setRequired(false);
     	options.addOption(helpOption);

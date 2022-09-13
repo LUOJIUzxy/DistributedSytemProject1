@@ -11,7 +11,8 @@ public class BlockReply extends Message {
     public String fileMd5;
 
     //the index of the provided block
-    public Integer blockIdx;
+    @JsonElement
+    public int blockIdx;
 
     //a Base 64 Encoded string representing the byte array of the block
     public String bytes;

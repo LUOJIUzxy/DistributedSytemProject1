@@ -96,7 +96,8 @@ public class Server extends Thread {
 				Socket socket = incomingConnections.take();
 				processRequest(socket);
 				socket.close();
-			} catch (InterruptedException e) {
+			} catch (InterruptedException e
+			) {
 				logger.logWarn("Server interrupted.");
 				break;
 			} catch (IOException e) {
@@ -145,7 +146,7 @@ public class Server extends Thread {
 		try {
 			msg = readMsg(bufferedReader);
 		} catch (JsonSerializationException e1) {
-			writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
+			writeMsg(bufferedWriter,new ErrorMsg("NON-jsonSerialization message"));
 			return;
 		}
 		
@@ -179,7 +180,7 @@ public class Server extends Thread {
 		try {
 			msg = readMsg(bufferedReader);
 		} catch (JsonSerializationException e) {
-			writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
+			writeMsg(bufferedWriter,new ErrorMsg("NON-jsonSerialization message"));
 			return;
 		}
 		
@@ -260,6 +261,7 @@ public class Server extends Thread {
 	
 	//處理LookupRequest
 	private void processLookupCmd(BufferedWriter bufferedWriter,LookupRequest msg,String ip,int port) throws IOException {
+		logger.logInfo("Processing LookUpRequest");
 		HashSet<IndexElement> hits = indexMgr.lookup(msg.filename,msg.fileMd5);
 		writeMsg(bufferedWriter,new LookupReply(new ArrayList<IndexElement>(hits)));
 	}

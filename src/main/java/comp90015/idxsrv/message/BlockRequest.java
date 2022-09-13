@@ -9,7 +9,8 @@ public class BlockRequest extends Message {
     //the MD5 hash of the file (provided by the `FileDescr` class)
     public String fileMd5;
     //the index of the block requested
-    public Integer blockIdx;
+    @JsonElement
+    public int blockIdx;
 	
 	public BlockRequest() {
 		

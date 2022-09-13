@@ -17,8 +17,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.googlecode.lanterna.gui2.TextGUI;
+
 import comp90015.idxsrv.peer.Peer;
 import comp90015.idxsrv.textgui.PeerGUI;
+import comp90015.idxsrv.peer.sharePeer;
 
 /**
  * Main class for the file sharing peer. Handles options and starts up
@@ -63,9 +66,9 @@ public class Filesharer {
     	 * numbers.
     	 */
     	InetAddress address = InetAddress.getByName("localhost"); // default hostname of this peer
-    	InetAddress idxSrvAddress = InetAddress.getByName("localhost"); // default hostname of the index server
+    	InetAddress idxSrvAddress = InetAddress.getByName("172.24.74.41"); // default hostname of the index server
     	int idxSrvPort = 3200; // the port of the index server
-		int port = 3201; // the port this peer uses for other peers to connect to
+		int port = 3203; // the port this peer uses for other peers to connect to
 		int timeout = 1000; // the default socket timeout in milliseconds for idle sockets
     	
     	/*
@@ -195,6 +198,9 @@ public class Filesharer {
     	 * Start up a peer.
     	 */
 		Peer peer = new Peer(port,dir,timeout,textGUI);
+
+		
+    	
 		
 		/*
 		 * Tell the gui about the peer.
@@ -205,6 +211,18 @@ public class Filesharer {
 		 * Give control over to the gui.
 		 */
 		textGUI.start(); // a blocking call which gives control to the GUI
+
+		// //acts as peer server
+		// sharePeer serverPeer;
+		
+		// textGUI.logDebug(String.valueOf(port) + "###############");
+		//  serverPeer = new sharePeer(textGUI,timeout);
+		//  serverPeer.start();
+		// try {
+		// 	serverPeer.join();
+		// } catch (InterruptedException e) {
+		// 	textGUI.logError("Could not join with the server.");
+		// }
 		
 		/*
 		 * Tell the peer to shutdown since the user quit the gui.
