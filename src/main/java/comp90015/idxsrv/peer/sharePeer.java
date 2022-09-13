@@ -76,6 +76,8 @@ public class sharePeer extends Thread{
 			try {
 				//retrieve the head of incomingConnections queue
 				Socket socket = incomingConnections.take();
+                //could also use While loop to continously receive BlockRequest and send BlockReply
+
                 // String ip=socket.getInetAddress().getHostAddress();
                 // int port=socket.getPort();
                 // tgui.logInfo("Receiving request from "+ ip + ":" + port);

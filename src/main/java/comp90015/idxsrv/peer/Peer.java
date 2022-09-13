@@ -21,7 +21,7 @@ import comp90015.idxsrv.filemgr.BlockUnavailableException;
 import comp90015.idxsrv.filemgr.FileDescr;
 import comp90015.idxsrv.server.IOThread;
 import comp90015.idxsrv.textgui.ISharerGUI;
-
+import comp90015.idxsrv.textgui.ITerminalLogger;
 import comp90015.idxsrv.message.AuthenticateReply;
 import comp90015.idxsrv.message.AuthenticateRequest;
 import comp90015.idxsrv.message.DropShareReply;
@@ -54,6 +54,7 @@ public class Peer implements IPeer {
 	
 	private ISharerGUI tgui;
 	
+	private ITerminalLogger logger;
 	private String basedir;
 	
 	private int timeout;
@@ -404,101 +405,100 @@ public class Peer implements IPeer {
 		//String serverPeerSecret;
 
 		//Ask the Index Server for the searchRecord information (ip, port, secret of the corresponding sharing Peer)
-        // Socket socket;
-		// try {
+        Socket socket;
+		try {
 	        
-		// 	socket = new Socket(searchRecord.idxSrvAddress, searchRecord.idxSrvPort);
-		// 	//socket = new Socket(idxAddress.getHostName(), idxPort);
-		// 	InputStream inputStream = socket.getInputStream();
-		// 	OutputStream outputStream = socket.getOutputStream();
-		// 	BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-		// 	BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
+			socket = new Socket(searchRecord.idxSrvAddress, searchRecord.idxSrvPort);
+			//socket = new Socket(idxAddress.getHostName(), idxPort);
+			InputStream inputStream = socket.getInputStream();
+			OutputStream outputStream = socket.getOutputStream();
+			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+			BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
 			
-		// 	//no use of IdxSecret?? -----> first need to send out authenticate request?
-		// 	writeMsg(bufferedWriter, new AuthenticateRequest(searchRecord.idxSrvSecret));
-		// 	Message authMsg;
-		// 	try {
-		// 		authMsg = readMsg(bufferedReader);
-		// 	} catch (JsonSerializationException e1) {
-		// 		writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
-		// 		return;
-		// 	}
-		// 	if(authMsg.getClass().getName()==WelcomeMsg.class.getName()){
-		// 		try {
-		// 			authMsg = readMsg(bufferedReader);
-		// 		} catch (JsonSerializationException e1) {
-		// 			writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
-		// 			return;
-		// 		}
-		// 	}
-        //     if(authMsg.getClass().getName()==AuthenticateReply.class.getName()){
-		// 		AuthenticateReply authReply = (AuthenticateReply) authMsg;
-		// 		if(!authReply.success){
-		// 			tgui.logError("authenticate failed!");
-		// 			return;
-		// 		} else {
-		// 			tgui.logInfo("authenticate succeed!");
-		// 			//send out a SearchRequest to Index Server, with details of a file to index
-		// 			tgui.logInfo("Sending a LookupRequest to Server.....");
+			//no use of IdxSecret?? -----> first need to send out authenticate request?
+			writeMsg(bufferedWriter, new AuthenticateRequest(searchRecord.idxSrvSecret));
+			Message authMsg;
+			try {
+				authMsg = readMsg(bufferedReader);
+			} catch (JsonSerializationException e1) {
+				writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
+				return;
+			}
+			if(authMsg.getClass().getName()==WelcomeMsg.class.getName()){
+				try {
+					authMsg = readMsg(bufferedReader);
+				} catch (JsonSerializationException e1) {
+					writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
+					return;
+				}
+			}
+            if(authMsg.getClass().getName()==AuthenticateReply.class.getName()){
+				AuthenticateReply authReply = (AuthenticateReply) authMsg;
+				if(!authReply.success){
+					tgui.logError("authenticate failed!");
+					return;
+				} else {
+					tgui.logInfo("authenticate succeed!");
+					//send out a SearchRequest to Index Server, with details of a file to index
+					tgui.logInfo("Sending a LookupRequest to Server.....");
 					
-		// 			//public DropShareRequest(String filename, String fileMd5, String sharingSecret,int port) {
+					//public DropShareRequest(String filename, String fileMd5, String sharingSecret,int port) {
 	
-		// 			//the port of peer
-		// 		    //public LookupRequest(String filename, String fileMd5)
-		// 			try{
-		// 				tgui.logError("@@@@@@@@@@@@@@@@@");
-		// 			    writeMsg(bufferedWriter,new LookupRequest(relativePathname, searchRecord.fileDescr.getFileMd5()));
-		// 			}  catch (NullPointerException e) {
-		// 				// TODO Auto-generated catch block
-		// 				tgui.logError("NullPointerExceoption");
-		// 				return;
-		// 			}
-		// 			//Get SearchReply from IdxServer
-		// 			// get a message
-		// 			Message msg;
-		// 			try {
-		// 				msg = readMsg(bufferedReader);
-		// 			} catch (JsonSerializationException e1) {
-		// 				writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
-		// 				return;
-		// 			}
-		// 			String msgname = msg.getClass().getName();
-		// 			if(msgname==LookupReply.class.getName()) {
-		// 				LookupReply lookupReply = (LookupReply) msg;
-		// 				//Question 1
-		// 				//1. 直接取第一個hits就行,
-		// 				//2. 選擇連接數最小的server peer
+					//the port of peer
+				    //public LookupRequest(String filename, String fileMd5)
+					try{
+						tgui.logError("@@@@@@@@@@@@@@@@@");
+					    writeMsg(bufferedWriter,new LookupRequest(relativePathname, searchRecord.fileDescr.getFileMd5()));
+					}  catch (NullPointerException e) {
+						// TODO Auto-generated catch block
+						tgui.logError("NullPointerExceoption");
+						return;
+					}
+					//Get SearchReply from IdxServer
+					// get a message
+					Message msg;
+					try {
+						msg = readMsg(bufferedReader);
+					} catch (JsonSerializationException e1) {
+						writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
+						return;
+					}
+					String msgname = msg.getClass().getName();
+					if(msgname==LookupReply.class.getName()) {
+						LookupReply lookupReply = (LookupReply) msg;
+						//Question 1
+						//1. 直接取第一個hits就行,
+						//2. 選擇連接數最小的server peer
 
-		// 				// for(int i = 0; i < lookupReply.hits.length; i++){
-		// 				// 	lookupReply.hits[i].
-		// 				// }
-		// 				if(lookupReply.hits.length == 0){
-		// 					tgui.logError("Something is Wrong!");
-		// 				} else {
-		// 					serverPeerAddress = lookupReply.hits[0].ip;
-		// 					serverPeerPort = lookupReply.hits[0].port;
-		// 					//serverPeerSecret = lookupReply.hits[0].secret;
-		// 				}           
-		// 			} else {
-		// 				writeMsg(bufferedWriter,new ErrorMsg("Require LookUpReply!"));
-		// 				return;
-		// 			}
+						// for(int i = 0; i < lookupReply.hits.length; i++){
+						// 	lookupReply.hits[i].
+						// }
+						if(lookupReply.hits.length == 0){
+							tgui.logError("Something is Wrong!");
+						} else {
+							serverPeerAddress = lookupReply.hits[0].ip;
+							serverPeerPort = lookupReply.hits[0].port;
+							//serverPeerSecret = lookupReply.hits[0].secret;
+						}           
+					} else {
+						writeMsg(bufferedWriter,new ErrorMsg("Require LookUpReply!"));
+						return;
+					}
 
-		// 			bufferedReader.close();
-		// 	        bufferedWriter.close();
-		// 			socket.close();
-		// 		}
-		// 	}
-		// } catch (UnknownHostException e1) {
-		// 	// TODO Auto-generated catch block
+					bufferedReader.close();
+			        bufferedWriter.close();
+					socket.close();
+				}
+			}
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
 			
-		// 	e1.printStackTrace();
-		// } catch (IOException e1) {
-		// 	// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
 			
-		// 	e1.printStackTrace();
-		// }
-		//tgui.logError("dropShareWithIdxServer unimplemented");
+			e1.printStackTrace();
+		}
 		
         //Build socket to the Server Peer and send blockRequest
 	
@@ -525,7 +525,8 @@ public class Peer implements IPeer {
 						if(i == fileMgr.getFileDescr().getNumBlocks() - 1){
 							writeMsg(bufferedWriter,new Goodbye("Downlading Completed. Goodbye!"));
 						}
-
+                        
+						//receive BlockReply
 						Message msg;
 						try {
 							msg = readMsg(bufferedReader);
@@ -568,36 +569,6 @@ public class Peer implements IPeer {
 					tgui.logError("Invalid FileMgr");
 					return;
 				}
-			
-			//receive blockReply
-			// Message msg;
-			// try {
-			// 	msg = readMsg(bufferedReader);
-			// }catch (JsonSerializationException e1) {
-			// 	writeMsg(bufferedWriter,new ErrorMsg("Invalid message"));
-			// 	return;
-			// }
-
-			// String msgname = msg.getClass().getName();
-			// tgui.logDebug(msgname);
-			// if(msg.getClass().getName()==BlockReply.class.getName()){
-			// 	BlockReply blockReply = (BlockReply) msg;
-			// 	//write block to the index, used for client Peer
-			// 	byte[] byteArrray = blockReply.bytes.getBytes();
-			// 	if(fileMgr.checkBlockHash(blockReply.blockIdx, byteArrray)){
-			// 		if(fileMgr.writeBlock(blockReply.blockIdx, byteArrray)){
-			// 			tgui.logInfo("Download Block" + blockReply.blockIdx + "Succeeded!" );
-			// 		} else{
-			// 			tgui.logError("Download Block" + blockReply.blockIdx + "Failed!");
-			// 		}
-			//     } else{
-			// 		tgui.logError("FileMD5 doesn't match!");
-			// 	}
-
-			// 	return;
-			// } else {
-			// 	tgui.logError("Invalide Message!");
-			// }
 					
 		}		
 		catch (UnknownHostException e1) {
@@ -610,7 +581,7 @@ public class Peer implements IPeer {
 	 
 	
 	
-    //this peer acts as the server, makes blockReply
+    //this peer acts as the server, makes blockReply --> moves to sharePeer
 
 		// try {
 			
